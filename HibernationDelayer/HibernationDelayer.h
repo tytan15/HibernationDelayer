@@ -63,7 +63,7 @@ namespace HibernationDelayer {
 	private: System::ComponentModel::IContainer^ components;
 	private: System::Windows::Forms::Label^ lblGozinaBlad;
 	private: System::Windows::Forms::Label^ lblMinutyBlad;
-	private: int pozostaly_czas = 0; //przechowywanie aktualnego czasu do hibernacji
+	
 	private: System::Windows::Forms::Button^ btnHamburger;
 
 	private: System::Windows::Forms::ContextMenuStrip^ contextMenuStrip1;
@@ -73,8 +73,14 @@ namespace HibernationDelayer {
 	private: System::Windows::Forms::Panel^ panel1;
 	private: System::Windows::Forms::ToolStripMenuItem^ infoToolStripMenuItem;
 	private: System::Windows::Forms::ToolStripSeparator^ toolStripSeparator;
+	private: System::Windows::Forms::Label^ lblMonitor;
+	private: System::Windows::Forms::CheckBox^ checkMonitor;
+	private: System::Windows::Forms::ToolTip^ toolTip1;
 
 	private: int pozostaly_czas_start = 0; //Zapamiêtanie czasu na jaki ustawiono zahibernowanie
+	private: int pozostaly_czas = 0; //przechowywanie aktualnego czasu do hibernacji
+	private: bool MonitorWylaczony = false; //stan czy monitor by³ wy³aczany
+	private: System::String^ jezyk = gcnew String("");
 	protected:
 
 
@@ -118,6 +124,9 @@ namespace HibernationDelayer {
 			this->infoToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->groupBox1 = (gcnew System::Windows::Forms::GroupBox());
 			this->panel1 = (gcnew System::Windows::Forms::Panel());
+			this->lblMonitor = (gcnew System::Windows::Forms::Label());
+			this->checkMonitor = (gcnew System::Windows::Forms::CheckBox());
+			this->toolTip1 = (gcnew System::Windows::Forms::ToolTip(this->components));
 			this->contextMenuStrip1->SuspendLayout();
 			this->groupBox1->SuspendLayout();
 			this->panel1->SuspendLayout();
@@ -280,7 +289,7 @@ namespace HibernationDelayer {
 			this->btnHamburger->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Right));
 			this->btnHamburger->BackColor = System::Drawing::SystemColors::ButtonFace;
 			this->btnHamburger->Image = (cli::safe_cast<System::Drawing::Image^>(resources->GetObject(L"btnHamburger.Image")));
-			this->btnHamburger->Location = System::Drawing::Point(250, 3);
+			this->btnHamburger->Location = System::Drawing::Point(252, 0);
 			this->btnHamburger->Margin = System::Windows::Forms::Padding(0);
 			this->btnHamburger->Name = L"btnHamburger";
 			this->btnHamburger->Size = System::Drawing::Size(32, 32);
@@ -321,6 +330,7 @@ namespace HibernationDelayer {
 			this->infoToolStripMenuItem->Name = L"infoToolStripMenuItem";
 			this->infoToolStripMenuItem->Size = System::Drawing::Size(112, 22);
 			this->infoToolStripMenuItem->Text = L"info";
+			this->infoToolStripMenuItem->Click += gcnew System::EventHandler(this, &HibernationDelayer::infoToolStripMenuItem_Click);
 			// 
 			// groupBox1
 			// 
@@ -338,6 +348,8 @@ namespace HibernationDelayer {
 			// panel1
 			// 
 			this->panel1->AutoSize = true;
+			this->panel1->Controls->Add(this->lblMonitor);
+			this->panel1->Controls->Add(this->checkMonitor);
 			this->panel1->Controls->Add(this->txSekundy);
 			this->panel1->Controls->Add(this->lblSekundy);
 			this->panel1->Controls->Add(this->lblMinutyBlad);
@@ -349,8 +361,26 @@ namespace HibernationDelayer {
 			this->panel1->Controls->Add(this->txGodziny);
 			this->panel1->Location = System::Drawing::Point(0, 0);
 			this->panel1->Name = L"panel1";
-			this->panel1->Size = System::Drawing::Size(285, 92);
+			this->panel1->Size = System::Drawing::Size(308, 92);
 			this->panel1->TabIndex = 17;
+			// 
+			// lblMonitor
+			// 
+			this->lblMonitor->AutoSize = true;
+			this->lblMonitor->Location = System::Drawing::Point(197, 55);
+			this->lblMonitor->Name = L"lblMonitor";
+			this->lblMonitor->Size = System::Drawing::Size(77, 13);
+			this->lblMonitor->TabIndex = 17;
+			this->lblMonitor->Text = L"Wygaœ monitor";
+			// 
+			// checkMonitor
+			// 
+			this->checkMonitor->AutoSize = true;
+			this->checkMonitor->Location = System::Drawing::Point(225, 71);
+			this->checkMonitor->Name = L"checkMonitor";
+			this->checkMonitor->Size = System::Drawing::Size(15, 14);
+			this->checkMonitor->TabIndex = 16;
+			this->checkMonitor->UseVisualStyleBackColor = true;
 			// 
 			// HibernationDelayer
 			// 
@@ -363,6 +393,7 @@ namespace HibernationDelayer {
 			this->Controls->Add(this->groupBox1);
 			this->Controls->Add(this->btnHiberTeraz);
 			this->Controls->Add(this->btnHibernacja);
+			this->Icon = (cli::safe_cast<System::Drawing::Icon^>(resources->GetObject(L"$this.Icon")));
 			this->MaximumSize = System::Drawing::Size(300, 300);
 			this->MinimumSize = System::Drawing::Size(300, 300);
 			this->Name = L"HibernationDelayer";
@@ -458,6 +489,8 @@ namespace HibernationDelayer {
 		//zapamiêtanie czasu w sekundach do póŸniejszego u¿ycia
 		pozostaly_czas = sekundy;
 		pozostaly_czas_start = sekundy;
+		//wyswietloenie pozosta³ego czasu
+		this->lblPozostalyVal->Text = Sekundy2string(pozostaly_czas);
 		//uruchomienie timera, odliczaj¹cego zadany czas
 		this->timer1->Enabled = true;
 		timer1->Start();
@@ -494,6 +527,13 @@ namespace HibernationDelayer {
 		//wyœwietlanie pozosta³ego czasu i paska postêpu
 		this->lblPozostalyVal->Text = Sekundy2string(pozostaly_czas);
 		this->progressBar1->Value = System::Convert::ToInt32(100 - trunc(100 * pozostaly_czas / pozostaly_czas_start));
+		//wykonanie akcji po 2 minutach od uruchomienia timera
+		if (this->checkMonitor->Checked && !MonitorWylaczony && pozostaly_czas_start - pozostaly_czas > 120) {
+				//blokada kolejnego wy³¹czania monitora
+				MonitorWylaczony = true;
+				//wyzwolenie wy³¹czenia monitora
+				SendMessage(GetActiveWindow(), WM_SYSCOMMAND, SC_MONITORPOWER, 2);
+		}
 
 		//wykonanie akcji gdy czas dobieg³ do koñca
 		if (pozostaly_czas <= 0)
@@ -536,6 +576,7 @@ namespace HibernationDelayer {
 	}
 		   /*Funkcja ustawiaj¹ca nazwy etykiet w jêzyku polskim*/
 	private: void etykietyPL() {
+		jezyk = "PL";
 		this->lblGodziny->Text = "Godziny";
 		this->lblGozinaBlad->Text = "B³êdna wartoœæ";
 		this->lblMinuty->Text = "Minuty";
@@ -545,9 +586,19 @@ namespace HibernationDelayer {
 		this->btnAnuluj->Text = "Zatrzymaj odliczanie";
 		this->btnHibernacja->Text = "Zaplanuj hibernacjê";
 		this->btnHiberTeraz->Text = "Hibernuj TERAZ";
+		this->lblMonitor->Text = "Wygaœ monitor";
+		toolTip1->SetToolTip(this->txGodziny, "Liczba godzin,po jakiej ma nast¹piæ hibernacja.");
+		toolTip1->SetToolTip(this->txMinuty, "Liczba minut,pojakiej ma nast¹piæ hibernacja.");
+		toolTip1->SetToolTip(this->txSekundy, "Obliczona liczba sekund do hibernacji");
+		toolTip1->SetToolTip(this->checkMonitor, "Gdy aktywne po 2 minutach wy³¹czy siê monitor.");
+		toolTip1->SetToolTip(this->btnHibernacja, "Zaplanuj wykonanie hibernacji po okreœlonym wy¿ej czasie.");
+		toolTip1->SetToolTip(this->btnHiberTeraz, "Wykonaj hibernacjê teraz, bez wzglêdu na ustawiony czas.");
+		toolTip1->SetToolTip(this->btnAnuluj, "Przerwij odliczanie i anuluj hibernacjê.");
+		toolTip1->SetToolTip(this->progressBar1, "Postêp do hibernacji.");
 	}
 		   /*Funkcja ustawiaj¹ca nazwy etykiet w jêzyku angielskim*/
 	private: void etykietyEN() {
+		jezyk = "EN";
 		this->lblGodziny->Text = "Hours";
 		this->lblGozinaBlad->Text = "Wrong value";
 		this->lblMinuty->Text = "Minutes";
@@ -557,21 +608,45 @@ namespace HibernationDelayer {
 		this->btnAnuluj->Text = "Stop counting";
 		this->btnHibernacja->Text = "Schedule hibernation";
 		this->btnHiberTeraz->Text = "Hibernate NOW";
+		this->lblMonitor->Text = "Power off monitor";
+		toolTip1->SetToolTip(this->txGodziny, "Number of hours until hibernation begins");
+		toolTip1->SetToolTip(this->txMinuty, "Number of minutes until hibernation begins");
+		toolTip1->SetToolTip(this->txSekundy, "Calculated number of seconds until hibernation begins");
+		toolTip1->SetToolTip(this->checkMonitor, "When active, the monitor will turn off after 2 minutes.");
+		toolTip1->SetToolTip(this->btnHibernacja, "Schedule hibernation after the time specified above.");
+		toolTip1->SetToolTip(this->btnHiberTeraz, "Hibernate now, regardless of the time you set.");
+		toolTip1->SetToolTip(this->btnAnuluj, "Stop the countdown and cancel hibernation.");
+		toolTip1->SetToolTip(this->progressBar1, "Progress to hibernation.");
 	}
 		   //uruchamiane przy starcie aplikacji. Sprawdzay jest jêzyk systemu w celu automatycznego prze³aczenia jêzyka aplikacji
 	private: System::Void hibernacja_Load(System::Object^ sender, System::EventArgs^ e) {
 		//odczyt aktualnego jezyka systemu
 		std::string jezyk = setlocale(LC_ALL, "");
 		//sprawdzenie czy aktualny jêzyk to PL
-		if (jezyk.compare("Polish_Poland.1250") == 0)
+		if (jezyk.compare("Polish_Poland.1250") == 0) {
 			etykietyPL();
-		else
+		}
+		else {
 			etykietyEN();
+		}
 		//ustawienie etykiety czasu do hibernacji
 		this->lblPozostalyVal->Text = Sekundy2string(pozostaly_czas);
 
 
 
 	}
-	};
+	/*Funkcja otwieraj¹ca okienko z informacjami o programie.*/
+	private: System::Void infoToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
+		if (jezyk == "PL") {
+			MessageBox::Show("Program napisany jako potrzeba chwili.\nJe¿eli uwa¿asz ¿e jest przydatny, to bardzo dobrze, mo¿esz daæ znaæ, ¿ebym wiedzia³,¿e jest u¿yteczny.\nProgram wykona³ tytan15.");
+		}
+		else {
+			MessageBox::Show("The program was written as a need of the hour.\nIf you think it's useful, that's great, you can let me know so I know it's useful.\nThe program was created by tytan15.");
+		}
+		//winuser.h
+		//wygaszenie ekranu 
+		//
+	}
+
+};
 }
