@@ -19,4 +19,5 @@ Jeśli uznasz program za przydatny lub uważasz, że warto coś dodać, zostaw i
 
 
 
-Icon used in program: <a href="https://www.flaticon.com/free-icons/hibernation" title="hibernation icons">Hibernation icons created by Flat Icons - Flaticon</a>
+Icons used in program: <a href="https://www.flaticon.com/free-icons/hibernation" title="hibernation icons">Hibernation icons created by Flat Icons - Flaticon</a>
+<a href="https://www.flaticon.com/free-icons/play-button" title="play button icons">Play button icons created by WR Graphic Garage - Flaticon</a>
