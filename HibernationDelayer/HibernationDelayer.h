@@ -4,6 +4,7 @@
 #include <math.h>
 #include<iostream>
 #include <locale>
+#include<Winuser.h>
 namespace HibernationDelayer {
 
 	using namespace System;
@@ -174,11 +175,14 @@ namespace HibernationDelayer {
 			// 
 			// btnHibernacja
 			// 
-			this->btnHibernacja->Location = System::Drawing::Point(18, 98);
+			this->btnHibernacja->Image = (cli::safe_cast<System::Drawing::Image^>(resources->GetObject(L"btnHibernacja.Image")));
+			this->btnHibernacja->ImageAlign = System::Drawing::ContentAlignment::BottomCenter;
+			this->btnHibernacja->Location = System::Drawing::Point(14, 94);
 			this->btnHibernacja->Name = L"btnHibernacja";
-			this->btnHibernacja->Size = System::Drawing::Size(121, 23);
+			this->btnHibernacja->Size = System::Drawing::Size(75, 75);
 			this->btnHibernacja->TabIndex = 4;
 			this->btnHibernacja->Text = L"Zaplanuj hibernacjê";
+			this->btnHibernacja->TextAlign = System::Drawing::ContentAlignment::TopCenter;
 			this->btnHibernacja->UseVisualStyleBackColor = true;
 			this->btnHibernacja->Click += gcnew System::EventHandler(this, &HibernationDelayer::btnHibernacja_Click);
 			// 
@@ -230,9 +234,9 @@ namespace HibernationDelayer {
 			// btnHiberTeraz
 			// 
 			this->btnHiberTeraz->BackColor = System::Drawing::Color::RosyBrown;
-			this->btnHiberTeraz->Location = System::Drawing::Point(18, 127);
+			this->btnHiberTeraz->Location = System::Drawing::Point(105, 127);
 			this->btnHiberTeraz->Name = L"btnHiberTeraz";
-			this->btnHiberTeraz->Size = System::Drawing::Size(121, 23);
+			this->btnHiberTeraz->Size = System::Drawing::Size(76, 42);
 			this->btnHiberTeraz->TabIndex = 10;
 			this->btnHiberTeraz->Text = L"Hibernacja TERAZ";
 			this->btnHiberTeraz->UseVisualStyleBackColor = false;
@@ -288,6 +292,7 @@ namespace HibernationDelayer {
 			// 
 			this->btnHamburger->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Right));
 			this->btnHamburger->BackColor = System::Drawing::SystemColors::ButtonFace;
+			this->btnHamburger->BackgroundImageLayout = System::Windows::Forms::ImageLayout::Center;
 			this->btnHamburger->Image = (cli::safe_cast<System::Drawing::Image^>(resources->GetObject(L"btnHamburger.Image")));
 			this->btnHamburger->Location = System::Drawing::Point(252, 0);
 			this->btnHamburger->Margin = System::Windows::Forms::Padding(0);
@@ -397,7 +402,7 @@ namespace HibernationDelayer {
 			this->MaximumSize = System::Drawing::Size(300, 300);
 			this->MinimumSize = System::Drawing::Size(300, 300);
 			this->Name = L"HibernationDelayer";
-			this->Text = L"hibernacja";
+			this->Text = L"HibernationDelayer";
 			this->Load += gcnew System::EventHandler(this, &HibernationDelayer::hibernacja_Load);
 			this->contextMenuStrip1->ResumeLayout(false);
 			this->groupBox1->ResumeLayout(false);
@@ -532,7 +537,11 @@ namespace HibernationDelayer {
 				//blokada kolejnego wy³¹czania monitora
 				MonitorWylaczony = true;
 				//wyzwolenie wy³¹czenia monitora
-				SendMessage(GetActiveWindow(), WM_SYSCOMMAND, SC_MONITORPOWER, 2);
+				//TODO poprawiæ tê funkcjê aby by³a bardziej uniwersalna
+				this->lblMonitor->ForeColor = Color::FromName("Red");
+				SendMessage(HWND_BROADCAST, WM_SYSCOMMAND, SC_MONITORPOWER, (LPARAM)2);
+				//SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_AWAYMODE_REQUIRED);
+				
 		}
 
 		//wykonanie akcji gdy czas dobieg³ do koñca
@@ -554,6 +563,7 @@ namespace HibernationDelayer {
 		pozostaly_czas = 0;
 		this->lblPozostalyVal->Text = Sekundy2string(pozostaly_czas);
 		this->progressBar1->Value = 0;
+		this->lblMonitor->ResetForeColor();
 	}
 		   /*Wykonanie hibernacji  natychmiastowej po aktywacji stosownego przycisku*/
 	private: System::Void btnHiberTeraz_Click(System::Object^ sender, System::EventArgs^ e) {
@@ -638,10 +648,10 @@ namespace HibernationDelayer {
 	/*Funkcja otwieraj¹ca okienko z informacjami o programie.*/
 	private: System::Void infoToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
 		if (jezyk == "PL") {
-			MessageBox::Show("Program napisany jako potrzeba chwili.\nJe¿eli uwa¿asz ¿e jest przydatny, to bardzo dobrze, mo¿esz daæ znaæ, ¿ebym wiedzia³,¿e jest u¿yteczny.\nProgram wykona³ tytan15.");
+			MessageBox::Show("Program napisany jako potrzeba chwili.\nJe¿eli uwa¿asz ¿e jest przydatny, to bardzo dobrze, mo¿esz daæ znaæ, ¿ebym wiedzia³,¿e jest u¿yteczny.\n\nNiestety wy³aczanie monitora nie zawsze dzia³a jak nalezy (mo¿e powodowac uœpienie komputera), jest to zale¿ne od pozosta³ych ustawieñ systemowych. Prosze przetestowac tê funkcjionalnoœæ.\n\nProgram wykona³ tytan15.");
 		}
 		else {
-			MessageBox::Show("The program was written as a need of the hour.\nIf you think it's useful, that's great, you can let me know so I know it's useful.\nThe program was created by tytan15.");
+			MessageBox::Show("The program was written as a need of the hour.\nIf you think it's useful, that's great, you can let me know so I know it's useful.\n\nUnfortunately, turning off the monitor does not always work as it should (it may cause the computer to go to sleep), it depends on other system settings. Please test this functionality.\n\nThe program was created by tytan15.");
 		}
 		//winuser.h
 		//wygaszenie ekranu 

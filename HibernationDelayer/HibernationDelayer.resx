@@ -117,10 +117,26 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="btnHibernacja.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAA
+        6gAAAOoB+Ss1JgAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAJMSURBVFhHYxgF
+        gxIwc7AmsfFzXmfl5ZgJ5IpAROkH+Fi42L44LM/4r5Zs9wPI/sjEypoDFGeGSNMeqHHLCL4PuNT8H4Rd
+        txb+FzVX+gIMjTtAOWuIEtoCFAfAsMXk6P8conxf2Xg51wLViEOU0gZgdQAI+51t+K9T6vmThYf9ExMb
+        SzVQLRtEC3UBTgfAsPvu0v9SbtqfWLjZHwPVu0K0UQ8QdAAMW89O/M8pKQByyF6gPlmIdsoB0Q4AYb9z
+        oGjx+AXMLZ+B0dIC1M8OMYZ8QJIDYNhjDzRauNifAM3wgBhFHiDLATBsMzfpP5e0ICjb7geaJQ8xkjRA
+        kQNAGBQtuqWef4Bp4yswatqAZpIULRQ7AIY99pb9l3LR/gLNLYoQ4wkDqjkAhnXLvf4C65YVUPMJAqo6
+        wPdkLSgUvgFDoRNqPkFANQdYTIn5zy7MDUqQc4DmskKMJwwodoDHvvL/Uq46n1m52e8BzbOAGEs8IN8B
+        F5v+G7cG/WHl4/gMTf1k1RVkOcBlc/5/QV2ZT6x8nGeAZqhDjCIPkOQA39P1/9XT7H+xcLN9YmJiygDq
+        Z4QYQz4g2gG285NBldFnFl52UBuBak03gg7wPlL1X87f8Cswaz0DqneBaKMewOsA057wf8BEBrSctR+o
+        lgOihboAqwNAbUNhQ7nPrLycF4BqtCBKaQNQHACv70HNMHaWIqA8E0QZ7YAkmxD3J/8LTf9tF6b+55IS
+        BCYyzo1AcZo2RFEAGx/nRlZ+TlAtBkpkFDUuKAHCUHoU0BAwMAAAGav1ljT0Z/0AAAAASUVORK5CYII=
+</value>
+  </data>
   <metadata name="timer1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
   </metadata>
-  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   <data name="btnAnuluj.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAL
