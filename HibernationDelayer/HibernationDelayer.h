@@ -5,6 +5,9 @@
 #include<iostream>
 #include <locale>
 #include<Winuser.h>
+#include <powrprof.h>
+
+#pragma comment(lib, "PowrProf.lib") // Do³¹czanie biblioteki PowrProf.lib
 namespace HibernationDelayer {
 
 	using namespace System;
@@ -81,7 +84,10 @@ namespace HibernationDelayer {
 	private: int pozostaly_czas_start = 0; //Zapamiêtanie czasu na jaki ustawiono zahibernowanie
 	private: int pozostaly_czas = 0; //przechowywanie aktualnego czasu do hibernacji
 	private: bool MonitorWylaczony = false; //stan czy monitor by³ wy³aczany
-	private: System::String^ jezyk = gcnew String("");
+	private: System::String^ jezyk = gcnew String(""); //przechowywanie kodu jêzyka
+	private: unsigned int CzasDomyslnyAC = NULL;
+	private: unsigned int CzasDomyslnyDC = NULL;
+
 	protected:
 
 
@@ -403,6 +409,7 @@ namespace HibernationDelayer {
 			this->MinimumSize = System::Drawing::Size(300, 300);
 			this->Name = L"HibernationDelayer";
 			this->Text = L"HibernationDelayer";
+			this->FormClosing += gcnew System::Windows::Forms::FormClosingEventHandler(this, &HibernationDelayer::zamykanie);
 			this->Load += gcnew System::EventHandler(this, &HibernationDelayer::hibernacja_Load);
 			this->contextMenuStrip1->ResumeLayout(false);
 			this->groupBox1->ResumeLayout(false);
@@ -496,6 +503,17 @@ namespace HibernationDelayer {
 		pozostaly_czas_start = sekundy;
 		//wyswietloenie pozosta³ego czasu
 		this->lblPozostalyVal->Text = Sekundy2string(pozostaly_czas);
+		//sprawdzenie czy zaznaczone wygaszenie monitora. Je¿eli tak to ustawienie odpowiednich czasów
+		if (this->checkMonitor->Checked) {
+			GUID* activeScheme; //GUID aktualnie wybranego planu
+			const GUID GUID_VIDEO_SUBGROUP = { 0x7516b95f, 0xf776, 0x4464, {0x8c, 0x53, 0x06, 0x16, 0x7f, 0x40, 0xcc, 0x99} }; //wartoœæ sta³a niezalezna od wybranego planu
+			const GUID VIDEOIDLE = { 0x3c0bc021, 0xc8a8, 0x4e07, {0xa9, 0x73, 0x6b, 0x14, 0xcb, 0xcb, 0x2b, 0x7e} };
+			const unsigned int czas_wygas = 120; //ustawiony na sztywno czas wygaszenia ekranu wynosz¹cy 2 minuty
+			PowerGetActiveScheme(NULL, &activeScheme); //odczyt aktualnie wybranego planu
+			PowerWriteACValueIndex(NULL, activeScheme, &GUID_VIDEO_SUBGROUP, &VIDEOIDLE, czas_wygas);
+			PowerWriteDCValueIndex(NULL, activeScheme, &GUID_VIDEO_SUBGROUP, &VIDEOIDLE, czas_wygas);
+			PowerSetActiveScheme(NULL, activeScheme);
+		}
 		//uruchomienie timera, odliczaj¹cego zadany czas
 		this->timer1->Enabled = true;
 		timer1->Start();
@@ -532,17 +550,7 @@ namespace HibernationDelayer {
 		//wyœwietlanie pozosta³ego czasu i paska postêpu
 		this->lblPozostalyVal->Text = Sekundy2string(pozostaly_czas);
 		this->progressBar1->Value = System::Convert::ToInt32(100 - trunc(100 * pozostaly_czas / pozostaly_czas_start));
-		//wykonanie akcji po 2 minutach od uruchomienia timera
-		if (this->checkMonitor->Checked && !MonitorWylaczony && pozostaly_czas_start - pozostaly_czas > 120) {
-				//blokada kolejnego wy³¹czania monitora
-				MonitorWylaczony = true;
-				//wyzwolenie wy³¹czenia monitora
-				//TODO poprawiæ tê funkcjê aby by³a bardziej uniwersalna
-				this->lblMonitor->ForeColor = Color::FromName("Red");
-				SendMessage(HWND_BROADCAST, WM_SYSCOMMAND, SC_MONITORPOWER, (LPARAM)2);
-				//SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_AWAYMODE_REQUIRED);
-				
-		}
+
 
 		//wykonanie akcji gdy czas dobieg³ do koñca
 		if (pozostaly_czas <= 0)
@@ -550,23 +558,27 @@ namespace HibernationDelayer {
 	}
 		   /*funkcja wykonuj¹ca zatrzymanie timera, wykonuj¹ca hibernacjê i samozamkniêcie aplikacji*/
 	private: System::Void akcja() {
-		timer1->Stop();
-		system("shutdown /h");
-		Application::Exit();
+		timer1->Stop();//zatrzymanie timera
+		domyslne_czasy_zapis();//przywrócenie czasów wygaszenia monitora (domyœlnych)
+		system("shutdown /h");//wykonanie hibernacji
+		Application::Exit(); //zamkniêcie aplikacji
 	}
 		   /*Funkcja wykonujaca przerwanie odliczania po naciœniêciu odpowiedniego przycisku*/
 	private: System::Void btnAnuluj_Click(System::Object^ sender, System::EventArgs^ e) {
-		//zatrzymanie timera
-		timer1->Stop();
+		
+		timer1->Stop();//zatrzymanie timera
 		this->timer1->Enabled = false;
 		//wyserowanie czasu pozosta³ego do hibernacji
 		pozostaly_czas = 0;
 		this->lblPozostalyVal->Text = Sekundy2string(pozostaly_czas);
 		this->progressBar1->Value = 0;
 		this->lblMonitor->ResetForeColor();
+		//przywrócenie domyœlnego czasu wygaszenia monitora
+		domyslne_czasy_zapis();
 	}
 		   /*Wykonanie hibernacji  natychmiastowej po aktywacji stosownego przycisku*/
 	private: System::Void btnHiberTeraz_Click(System::Object^ sender, System::EventArgs^ e) {
+		domyslne_czasy_zapis();//ustawienie domyœlnych czasów wygaszenia monitora
 		system("shutdown /h");
 		Application::Exit();
 	}
@@ -641,7 +653,17 @@ namespace HibernationDelayer {
 		}
 		//ustawienie etykiety czasu do hibernacji
 		this->lblPozostalyVal->Text = Sekundy2string(pozostaly_czas);
-
+		//odczyt aktualnego czasu do wygaszenia monitora
+		GUID* activeScheme; //GUID aktualnie wybranego planu
+		const GUID GUID_VIDEO_SUBGROUP = { 0x7516b95f, 0xf776, 0x4464, {0x8c, 0x53, 0x06, 0x16, 0x7f, 0x40, 0xcc, 0x99} }; //wartoœæ sta³a niezalezna od wybranego planu
+		const GUID VIDEOIDLE = { 0x3c0bc021, 0xc8a8, 0x4e07, {0xa9, 0x73, 0x6b, 0x14, 0xcb, 0xcb, 0x2b, 0x7e} };
+		DWORD wartoscAC = NULL;
+		DWORD wartoscDC = NULL;
+		PowerGetActiveScheme(NULL, &activeScheme); //odczyt aktualnie wybranego planu
+		PowerReadACValueIndex(NULL, activeScheme, &GUID_VIDEO_SUBGROUP, &VIDEOIDLE, &wartoscAC); //odczytanie wartoœci czasu wygaszania ekranu dla zasilania sieciowego
+		PowerReadDCValueIndex(NULL, activeScheme, &GUID_VIDEO_SUBGROUP, &VIDEOIDLE, &wartoscDC); //odczytanie wartoœci czasu wygaszania ekranu dla zasilania bateryjnego
+		CzasDomyslnyAC = wartoscAC;
+		CzasDomyslnyDC = wartoscDC;
 
 
 	}
@@ -658,5 +680,19 @@ namespace HibernationDelayer {
 		//
 	}
 
+private: System::Void zamykanie(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e) {
+	domyslne_czasy_zapis();
+	Sleep(1000);
+}
+	   System::Void domyslne_czasy_zapis() {
+		   //przywrócenie domyœlnego czasu wygaszenia ekranu
+		   GUID* activeScheme; //GUID aktualnie wybranego planu
+		   const GUID GUID_VIDEO_SUBGROUP = { 0x7516b95f, 0xf776, 0x4464, {0x8c, 0x53, 0x06, 0x16, 0x7f, 0x40, 0xcc, 0x99} }; //wartoœæ sta³a niezalezna od wybranego planu
+		   const GUID VIDEOIDLE = { 0x3c0bc021, 0xc8a8, 0x4e07, {0xa9, 0x73, 0x6b, 0x14, 0xcb, 0xcb, 0x2b, 0x7e} };
+		   PowerGetActiveScheme(NULL, &activeScheme); //odczyt aktualnie wybranego planu
+		   PowerWriteACValueIndex(NULL, activeScheme, &GUID_VIDEO_SUBGROUP, &VIDEOIDLE, CzasDomyslnyAC);
+		   PowerWriteDCValueIndex(NULL, activeScheme, &GUID_VIDEO_SUBGROUP, &VIDEOIDLE, CzasDomyslnyDC);
+		   PowerSetActiveScheme(NULL, activeScheme);
+	   }
 };
 }
